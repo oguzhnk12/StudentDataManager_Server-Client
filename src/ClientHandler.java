@@ -181,9 +181,9 @@ public class ClientHandler implements Runnable {
 
         @Override
         public void execute(String[] args) {
-            if (args.length == 3){
+            if (args.length == 2){
                 writer.println(1);
-                writer.println(studentsFileManager.changeGrade(args[0], args[1], args[2]));
+                writer.println(studentsFileManager.changeCGPA(args[0], args[1]));
                 writer.flush();
             }
             else{
