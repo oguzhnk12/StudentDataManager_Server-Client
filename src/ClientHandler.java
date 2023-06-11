@@ -25,6 +25,8 @@ public class ClientHandler implements Runnable {
             put("PWD", new ChangePassword());
             put("QUIT", new Quit());
             put("CHANGE", new Change());
+            put("ADD", new Add());
+            put("DELETE", new Delete());
         }};
         try {
             reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
@@ -46,7 +48,7 @@ public class ClientHandler implements Runnable {
                 response = reader.readLine();
                 if (response == null)
                     break;
-                responseFields = response.trim().split(" ");
+                responseFields = response.trim().split("\\s+");
                 args = new String[responseFields.length - 1];
                 System.arraycopy(responseFields, 1, args, 0, responseFields.length - 1);
                 found = false;
@@ -61,7 +63,7 @@ public class ClientHandler implements Runnable {
                 }
                 if(!found){
                     writer.println(1);
-                    writer.println("[ERROR] Invalid command. You can type 'HELP' to see possible commands.");
+                    writer.println("[ERROR] Invalid command. Please type 'HELP' to view the list of available commands and their usage.");
                     writer.flush();
                 }
             }
@@ -125,31 +127,72 @@ public class ClientHandler implements Runnable {
                 writer.flush();
             } else {
                 writer.println(1);
-                writer.println("[ERROR] Invalid Change Command.");
+                writer.println("[ERROR] Invalid 'pwd' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();
             }
         }
     }
+
     private static class Help implements Command {
         @Override
         public void execute(String[] args) {
-            writer.println(18);
+            writer.println(24);
             writer.println("=== Help ===\n");
             writer.println("Available commands:");
             writer.println("- display: Displays student information.");
             writer.println("    Usage:");
-            writer.println("        display                                      : Displays information of all students.");
-            writer.println("        display <student_id>                         : Displays information of a specific student by their ID.\n");
+            writer.println("        display                                                 : Displays information of all students.");
+            writer.println("        display <student_id>                                    : Displays information of a specific student by their ID.\n");
             writer.println("- pwd: Changes the password.");
             writer.println("    Usage:");
-            writer.println("        pwd <current_password> <new_password>        : Changes the current password to a new one.\n");
+            writer.println("        pwd <current_password> <new_password>                   : Changes the current password to a new one.\n");
             writer.println("- quit: Quits the application.");
             writer.println("    Usage:");
-            writer.println("        quit                                         : Quits the application.");
-            writer.println("- change: Changes student grade.");
+            writer.println("        quit                                                    : Quits the application.");
+            writer.println("- change: Changes student CGPA.");
             writer.println("    Usage:");
-            writer.println("        change <student_id> <exam_type> <new_grade>  : Quits the application.");
+            writer.println("        change <student_id> <new_cgpa>                          : Chages the CGPA of the entered student.");
+            writer.println("- add: Adds new student to the file.");
+            writer.println("    Usage:");
+            writer.println("        add <student_id> <name> <surname> <cgpa> <dob> <gender> : Adds new student to the file based on given information.");
+            writer.println("- delete: Deletes a student from the file.");
+            writer.println("    Usage:");
+            writer.println("        delete <student_id>                                     : Deletes a student whose student ID matches the entered student ID.");
             writer.flush();
+        }
+    }
+
+    private static class Add implements Command{
+
+        @Override
+        public void execute(String[] args) {
+            if(args.length == 6){
+                writer.println(1);
+                writer.println(studentsFileManager.addStudent(args[0], args[1], args[2], args[3], args[4], args[5]));
+                writer.flush();
+            }
+            else{
+                writer.println(1);
+                writer.println("[ERROR] Invalid 'add' command. Please type 'HELP' to view the list of available commands and their usage.");
+                writer.flush();
+            }
+        }
+    }
+
+    private static class Delete implements Command{
+
+        @Override
+        public void execute(String[] args) {
+            if (args.length == 1){
+                writer.println(1);
+                writer.println(studentsFileManager.deleteStudent(args[0]));
+                writer.flush();
+            }
+            else{
+                writer.println(1);
+                writer.println("[ERROR] Invalid 'delete' command. Please type 'HELP' to view the list of available commands and their usage.");
+                writer.flush();
+            }
         }
     }
 
@@ -171,7 +214,7 @@ public class ClientHandler implements Runnable {
                 writer.flush();
             } else {
                 writer.println(1);
-                writer.println("[ERROR] Invalid display command.");
+                writer.println("[ERROR] Invalid 'display' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();
             }
         }
@@ -188,7 +231,7 @@ public class ClientHandler implements Runnable {
             }
             else{
                 writer.println(1);
-                writer.println("[ERROR] Invalid change command.");
+                writer.println("[ERROR] Invalid 'change' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();
             }
         }

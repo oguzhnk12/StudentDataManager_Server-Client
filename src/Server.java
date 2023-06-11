@@ -30,7 +30,8 @@ public class Server {
             }
         } else {
             System.out.println("[ERROR]Please run the server with the required arguments. The template is as follows:");
-            System.out.println("java -jar StudentDataServer.jar <port_number> <students_file_path> <users_file_path>");
+            //System.out.println("java -jar StudentDataServer.jar <port_number> <students_file_path> <users_file_path>");
+            System.out.println("java Server <port_number> <students_file_path> <users_file_path>");
             System.exit(1);
         }
     }

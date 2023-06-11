@@ -66,7 +66,7 @@ public class UsersFileManager {
         File tempFile;
         String line;
         String[] credential;
-        result = "[FAILURE] User deleted.";
+        result = "";
         try {
             tempFile = new File(tempFilePath);
             fileReader = new FileReader(this.usersFile);
@@ -78,10 +78,10 @@ public class UsersFileManager {
                 if (credential[0].equals(username)) {
                     if (credential[1].equals(currentPassword)) {
                         writer.println(String.format("%s,%s", credential[0], newPassword));
-                        result = "[SUCCESS] Password changed successfully.";
+                        result = "[SUCCESS] Your password has been changed successfully.";
                     } else {
                         writer.println(line);
-                        result = "[FAILURE] Invalid current password.";
+                        result = "[FAILURE] The current password you entered is invalid.";
                     }
                 } else
                     writer.println(line);
