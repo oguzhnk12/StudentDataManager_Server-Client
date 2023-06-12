@@ -2,11 +2,17 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 public class StudentsFileManager {
 
     private final File studentsFile;
+
 
     public StudentsFileManager(File studentsFile) {
         this.studentsFile = studentsFile;
@@ -81,6 +87,7 @@ public class StudentsFileManager {
         String studentId;
         double newCgpa;
         String newCgpaStr;
+        int lineSeparatorLength = System.lineSeparator().length();
         try {
             newCgpa = Double.parseDouble(value);
         } catch (NumberFormatException exception) {
@@ -104,7 +111,7 @@ public class StudentsFileManager {
                     found = true;
                     break;
                 }
-                randomAccessFile.seek(randomAccessFile.getFilePointer() + 51);
+                randomAccessFile.seek(randomAccessFile.getFilePointer() + 49 + lineSeparatorLength);
             }
             if (!found) {
                 return "[FAILURE] Student not found.";
@@ -130,7 +137,11 @@ public class StudentsFileManager {
         String returnMessage = "";
         String[] fields;
         String datePattern = "\\d{2}-\\d{2}-\\d{4}";
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        sdf.setLenient(false);
         DecimalFormat decimalFormat = new DecimalFormat("#.00", DecimalFormatSymbols.getInstance(Locale.US));
+        Date currentDate = new Date();
+        Date date;
         if (!studentID.matches("\\d+") || studentID.length() != 4)
             return "[FAILURE] Invalid Stundent ID.";
         if (name.length() + surname.length() > 30)
@@ -146,8 +157,18 @@ public class StudentsFileManager {
         cgpaStr = decimalFormat.format(cgpa);
         if (!dob.matches(datePattern))
             return "[FAILURE] The provided date of birth format is incorrect. Please ensure that the date follows the format 'dd-mm-YYYY'.";
+        try {
+             date = sdf.parse(dob);
+            LocalDate currentLocalDate = currentDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate parsedLocalDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if (!parsedLocalDate.isBefore(currentLocalDate))
+                return "[FAILURE] The provided date of birth exceeds the current date.";
+        } catch (ParseException e) {
+            return "[FAILURE] The provided date of birth format is incorrect. Please ensure that the date follows the format 'dd-mm-YYYY'.";
+        }
         if (!gender.equals("M") && !gender.equals("F"))
             return "[FAILURE] The provided gender is invalid. Please enter 'M' for male or 'F' for female to indicate the gender.";
+
         fullName = String.join(" ", name, surname);
         String studentRecord = String.format("%4s,%-30s,%4s,%10s,%1s", studentID, fullName, cgpaStr, dob, gender);
         try {

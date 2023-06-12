@@ -10,41 +10,35 @@ public class ClientHandler implements Runnable {
     private static StudentsFileManager studentsFileManager;
     private static UsersFileManager usersFileManager;
 
-    private static BufferedReader reader;
-    private static PrintWriter writer;
-
-    private final Map<String, Command> commands;
 
     public ClientHandler(Socket incoming, StudentsFileManager studentsFileManager, UsersFileManager usersFileManager) {
         ClientHandler.incoming = incoming;
         ClientHandler.studentsFileManager = studentsFileManager;
         ClientHandler.usersFileManager = usersFileManager;
-        commands = new HashMap<>() {{
-            put("HELP", new Help());
-            put("DISPLAY", new Display());
-            put("PWD", new ChangePassword());
-            put("QUIT", new Quit());
-            put("CHANGE", new Change());
-            put("ADD", new Add());
-            put("DELETE", new Delete());
-        }};
-        try {
-            reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
-            writer = new PrintWriter(new OutputStreamWriter(incoming.getOutputStream()));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
     }
+
     @Override
     public void run() {
+        BufferedReader reader;
+        PrintWriter writer;
         boolean authenticated;
         String response;
         String[] responseFields;
         String[] args;
+        Map<String, Command> commands = new HashMap<>() {{
+            put("HELP", new Help());
+            put("DISPLAY", new Display());
+            put("PWD", new ChangePassword());
+            put("CHANGE", new Change());
+            put("ADD", new Add());
+            put("DELETE", new Delete());
+        }};
         boolean found;
         try {
+            reader = new BufferedReader(new InputStreamReader(incoming.getInputStream()));
+            writer = new PrintWriter(new OutputStreamWriter(incoming.getOutputStream()));
             authenticated = loginUser(reader, writer);
-            while(authenticated){
+            while (authenticated) {
                 response = reader.readLine();
                 if (response == null)
                     break;
@@ -53,15 +47,15 @@ public class ClientHandler implements Runnable {
                 System.arraycopy(responseFields, 1, args, 0, responseFields.length - 1);
                 found = false;
                 for (Map.Entry<String, Command> entry : commands.entrySet()) {
-                    if(responseFields[0].equalsIgnoreCase(entry.getKey())){
-                        entry.getValue().execute(args);
+                    if (responseFields[0].equalsIgnoreCase(entry.getKey())) {
+                        entry.getValue().execute(args, writer);
                         found = true;
-                        if(entry.getKey().equals("QUIT"))
-                            authenticated = false;
                         break;
                     }
                 }
-                if(!found){
+                if (!found) {
+                    if (responseFields[0].equalsIgnoreCase("QUIT"))
+                        break;
                     writer.println(1);
                     writer.println("[ERROR] Invalid command. Please type 'HELP' to view the list of available commands and their usage.");
                     writer.flush();
@@ -71,11 +65,10 @@ public class ClientHandler implements Runnable {
             reader.close();
             writer.close();
             incoming.close();
-            if(authenticated)
-                usersFileManager.logoutUser(ClientHandler.username);
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+
     }
 
     private boolean loginUser(BufferedReader reader, PrintWriter writer) {
@@ -104,23 +97,16 @@ public class ClientHandler implements Runnable {
                 writer.println(result[1]);
                 writer.flush();
             }
-        }catch (IOException exception) {
+        } catch (IOException exception) {
             exception.printStackTrace();
         }
-        return  authenticated;
-    }
-
-    private static class Quit implements Command {
-
-        @Override
-        public void execute(String[] args) {
-            usersFileManager.logoutUser(ClientHandler.username);
-        }
+        return authenticated;
     }
 
     private static class ChangePassword implements Command {
+
         @Override
-        public void execute(String[] args) {
+        public void execute(String[] args, PrintWriter writer) {
             if (args.length == 2) {
                 writer.println(1);
                 writer.println(usersFileManager.changePassword(ClientHandler.username, args[0], args[1]));
@@ -135,7 +121,7 @@ public class ClientHandler implements Runnable {
 
     private static class Help implements Command {
         @Override
-        public void execute(String[] args) {
+        public void execute(String[] args, PrintWriter writer) {
             writer.println(24);
             writer.println("=== Help ===\n");
             writer.println("Available commands:");
@@ -162,16 +148,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private static class Add implements Command{
+    private static class Add implements Command {
 
         @Override
-        public void execute(String[] args) {
-            if(args.length == 6){
+        public void execute(String[] args, PrintWriter writer) {
+            if (args.length == 6) {
                 writer.println(1);
                 writer.println(studentsFileManager.addStudent(args[0], args[1], args[2], args[3], args[4], args[5]));
                 writer.flush();
-            }
-            else{
+            } else {
                 writer.println(1);
                 writer.println("[ERROR] Invalid 'add' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();
@@ -179,16 +164,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private static class Delete implements Command{
+    private static class Delete implements Command {
 
         @Override
-        public void execute(String[] args) {
-            if (args.length == 1){
+        public void execute(String[] args, PrintWriter writer) {
+            if (args.length == 1) {
                 writer.println(1);
                 writer.println(studentsFileManager.deleteStudent(args[0]));
                 writer.flush();
-            }
-            else{
+            } else {
                 writer.println(1);
                 writer.println("[ERROR] Invalid 'delete' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();
@@ -198,7 +182,7 @@ public class ClientHandler implements Runnable {
 
     private static class Display implements Command {
         @Override
-        public void execute(String[] args) {
+        public void execute(String[] args, PrintWriter writer) {
             ArrayList<String> lines;
             if (args.length == 1) {
                 lines = studentsFileManager.displayStudent(args[0]);
@@ -220,16 +204,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private static class Change implements Command{
+    private static class Change implements Command {
 
         @Override
-        public void execute(String[] args) {
-            if (args.length == 2){
+        public void execute(String[] args, PrintWriter writer) {
+            if (args.length == 2) {
                 writer.println(1);
                 writer.println(studentsFileManager.changeCGPA(args[0], args[1]));
                 writer.flush();
-            }
-            else{
+            } else {
                 writer.println(1);
                 writer.println("[ERROR] Invalid 'change' command. Please type 'HELP' to view the list of available commands and their usage.");
                 writer.flush();

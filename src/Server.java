@@ -8,7 +8,7 @@ public class Server {
         openServer(args);
     }
 
-    public static void openServer(String args[]){
+    public static void openServer(String[] args){
         int portNumber = 0;
         if (args.length >= 3) {
             try {
