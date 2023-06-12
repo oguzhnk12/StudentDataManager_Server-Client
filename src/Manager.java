@@ -27,6 +27,8 @@ public class Manager {
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             startSession(username, writer,reader);
+            writer.close();
+            reader.close();
         }
         catch (Exception exception){
             exception.printStackTrace();
