@@ -19,7 +19,7 @@ To use the server-side application, follow the instructions below:
 
 ### Option 2: Manual Compilation and Execution
 
-1. Ensure you have Java Development Kit (JDK) installed on your system.
+1. Ensure that you have Java Development Kit (JDK) 11 or above installed on your system.
 2. Open the command-line interface or terminal.
 3. Navigate to the project directory containing the source code.
 4. Compile the source code using the following command:
@@ -41,9 +41,3 @@ To use the server-side application, follow the instructions below:
     - `change`: Changes the CGPA of a student.
     - `add`: Adds a new student to the file.
     - `delete`: Deletes a student from the file.
-
-## Student Information
-
-- Name: Oğuzhan
-- Surname: Kaya
-- Student Number: 21806449
